@@ -220,7 +220,7 @@ def send_daily_digest(jobs):
         
     html_body += """
         </table>
-        <p style="margin-top: 20px;">Keep applying! Check your <a href="https://thebright10.github.io/Portfolio_Sudip/dashboard.html">Portfolio Dashboard</a> for your complete application history.</p>
+        <p style="margin-top: 20px;">Keep applying! Check your <a href="https://thebright10.github.io/Automated-Job-Bot/">Job Bot Dashboard</a> for your complete application history.</p>
         <p>Best,<br>Sudip's Automated Job Bot</p>
       </body>
     </html>
