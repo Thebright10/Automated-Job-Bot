@@ -1,11 +1,13 @@
 import os
 import json
 import logging
+import secrets
 from datetime import datetime
+from urllib.parse import urlencode
 from flask import Flask, request, jsonify, render_template, redirect, url_for, session
 from flask_sqlalchemy import SQLAlchemy
 from flask_login import LoginManager, UserMixin, login_user, logout_user, login_required, current_user
-from authlib.integrations.flask_client import OAuth
+import requests as http_requests
 import google.generativeai as genai
 from PyPDF2 import PdfReader
 from jobspy import scrape_jobs
@@ -30,7 +32,7 @@ app.config['SESSION_COOKIE_HTTPONLY'] = True
 app.config['SESSION_COOKIE_SAMESITE'] = 'Lax'
 app.config['PREFERRED_URL_SCHEME'] = 'https'
 
-# Database Configuration (SQLite for local/Render, can be swapped to Postgres)
+# Database Configuration
 app.config['SQLALCHEMY_DATABASE_URI'] = os.environ.get("DATABASE_URL", "sqlite:///jobs.db")
 if app.config['SQLALCHEMY_DATABASE_URI'].startswith("postgres://"):
     app.config['SQLALCHEMY_DATABASE_URI'] = app.config['SQLALCHEMY_DATABASE_URI'].replace("postgres://", "postgresql://", 1)
@@ -43,20 +45,12 @@ login_manager.login_view = 'home'
 # Configure Gemini
 genai.configure(api_key=os.environ.get("GEMINI_API_KEY", ""))
 
-# Configure OAuth
-oauth = OAuth(app)
-google = oauth.register(
-    name='google',
-    client_id=os.environ.get("GOOGLE_CLIENT_ID"),
-    client_secret=os.environ.get("GOOGLE_CLIENT_SECRET"),
-    access_token_url='https://accounts.google.com/o/oauth2/token',
-    access_token_params=None,
-    authorize_url='https://accounts.google.com/o/oauth2/auth',
-    authorize_params=None,
-    api_base_url='https://www.googleapis.com/oauth2/v1/',
-    client_kwargs={'scope': 'openid email profile'},
-    server_metadata_url='https://accounts.google.com/.well-known/openid-configuration'
-)
+# Google OAuth Config (manual, no Authlib)
+GOOGLE_CLIENT_ID = os.environ.get("GOOGLE_CLIENT_ID", "")
+GOOGLE_CLIENT_SECRET = os.environ.get("GOOGLE_CLIENT_SECRET", "")
+GOOGLE_AUTH_URL = "https://accounts.google.com/o/oauth2/v2/auth"
+GOOGLE_TOKEN_URL = "https://oauth2.googleapis.com/token"
+GOOGLE_USERINFO_URL = "https://www.googleapis.com/oauth2/v2/userinfo"
 
 # --- DATABASE MODELS ---
 
@@ -235,23 +229,54 @@ def home():
 
 @app.route('/login')
 def login():
-    if not os.environ.get("GOOGLE_CLIENT_ID"):
-        # For testing without Google OAuth credentials yet, bypass login
-        return render_template('error.html', message="Google Login is not configured yet. Set GOOGLE_CLIENT_ID in your environment variables.")
+    if not GOOGLE_CLIENT_ID:
+        return "<h2>Google Login is not configured. Set GOOGLE_CLIENT_ID in environment variables.</h2>", 500
+    
     redirect_uri = url_for('authorize', _external=True)
-    return google.authorize_redirect(redirect_uri)
+    params = urlencode({
+        'client_id': GOOGLE_CLIENT_ID,
+        'redirect_uri': redirect_uri,
+        'response_type': 'code',
+        'scope': 'openid email profile',
+        'access_type': 'online',
+        'prompt': 'consent'
+    })
+    return redirect(f"{GOOGLE_AUTH_URL}?{params}")
 
 @app.route('/authorize')
 def authorize():
     try:
-        token = google.authorize_access_token()
-        user_info = google.get('userinfo').json()
+        code = request.args.get('code')
+        if not code:
+            return redirect(url_for('home'))
+        
+        redirect_uri = url_for('authorize', _external=True)
+        
+        # Exchange authorization code for access token
+        token_response = http_requests.post(GOOGLE_TOKEN_URL, data={
+            'code': code,
+            'client_id': GOOGLE_CLIENT_ID,
+            'client_secret': GOOGLE_CLIENT_SECRET,
+            'redirect_uri': redirect_uri,
+            'grant_type': 'authorization_code'
+        })
+        token_data = token_response.json()
+        
+        if 'error' in token_data:
+            raise Exception(f"Token error: {token_data['error']} - {token_data.get('error_description', '')}")
+        
+        access_token = token_data['access_token']
+        
+        # Get user info from Google
+        user_response = http_requests.get(GOOGLE_USERINFO_URL, headers={
+            'Authorization': f'Bearer {access_token}'
+        })
+        user_info = user_response.json()
         
         email = user_info['email']
         user = User.query.filter_by(email=email).first()
         
         if not user:
-            # Create new user
             is_admin = (email == os.environ.get("ADMIN_EMAIL", "adaksudip956@gmail.com"))
             user = User(
                 email=email,
