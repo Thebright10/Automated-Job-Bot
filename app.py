@@ -420,13 +420,14 @@ def search_jobs():
             )
             
             if not jobs_df.empty:
+                jobs_df = jobs_df.fillna("Unknown")
                 for _, row in jobs_df.iterrows():
                     job = {
-                        "title": row.get('title', 'Unknown'),
-                        "company": row.get('company', 'Unknown'),
-                        "location": row.get('location', location),
-                        "url": row.get('job_url', '#'),
-                        "source": term
+                        "title": str(row.get('title', 'Unknown')),
+                        "company": str(row.get('company', 'Unknown')),
+                        "location": str(row.get('location', location)),
+                        "url": str(row.get('job_url', '#')),
+                        "source": str(term)
                     }
                     all_jobs.append(job)
                     
