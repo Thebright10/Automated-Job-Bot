@@ -1,55 +1,13 @@
 {
-    "last_updated": "2026-07-22 06:33:30",
-    "total_jobs_today": 8,
+    "last_updated": "2026-07-24 06:20:44",
+    "total_jobs_today": 10,
     "total_drafts_saved": 2,
     "jobs": [
-        {
-            "title": "Application Support Engineer - Fresher",
-            "company": "Kyzer Software",
-            "location": "MH, IN",
-            "url": "https://in.indeed.com/viewjob?jk=96c82fd53f302133",
-            "status": "Apply Online"
-        },
-        {
-            "title": "Entry Level Software Engineer",
-            "company": "Medpace",
-            "location": "Navi Mumbai, Maharashtra, India",
-            "url": "https://www.linkedin.com/jobs/view/4383545434",
-            "status": "Apply Online"
-        },
-        {
-            "title": "Software Developer-Fresher",
-            "company": "WonderBiz Technologies Pvt.",
-            "location": "Thane, Maharashtra, India",
-            "url": "https://www.linkedin.com/jobs/view/4437681007",
-            "status": "Apply Online"
-        },
-        {
-            "title": "Software Engineering Trainee",
-            "company": "DigitalXNode",
-            "location": "Mumbai, Maharashtra, India",
-            "url": "https://www.linkedin.com/jobs/view/4416630313",
-            "status": "Apply Online"
-        },
-        {
-            "title": "Fresher - Software Development Engineer",
-            "company": "Wohlig",
-            "location": "",
-            "url": "https://www.linkedin.com/jobs/view/4129623996",
-            "status": "Apply Online"
-        },
         {
             "title": "Associate Test Engineer",
             "company": "CGLIA Solutions LLP",
             "location": "TS, IN",
             "url": "https://in.indeed.com/viewjob?jk=adca913cde5e963b",
-            "status": "Apply Online"
-        },
-        {
-            "title": "Software Development Engineer - Fresher",
-            "company": "Gravitix Tech",
-            "location": "Hyderabad, Telangana, India",
-            "url": "https://www.linkedin.com/jobs/view/4433451931",
             "status": "Apply Online"
         },
         {
@@ -60,17 +18,73 @@
             "status": "Apply Online"
         },
         {
+            "title": "Freshers / Entry Level Position for Software engineer",
+            "company": "Dhruvsoft",
+            "location": "Hyderabad, Telangana, India",
+            "url": "https://www.linkedin.com/jobs/view/4442680349",
+            "status": "Apply Online"
+        },
+        {
+            "title": "Software Development Engineer - Fresher",
+            "company": "Gravitix Tech",
+            "location": "Hyderabad, Telangana, India",
+            "url": "https://www.linkedin.com/jobs/view/4433451931",
+            "status": "Apply Online"
+        },
+        {
+            "title": "Junior Software Developer",
+            "company": "IntouchCX",
+            "location": "Hyderabad, Telangana, India",
+            "url": "https://www.linkedin.com/jobs/view/4415961693",
+            "status": "Apply Online"
+        },
+        {
+            "title": "Fresher Web Developer",
+            "company": NaN,
+            "location": "MH, IN",
+            "url": "https://in.indeed.com/viewjob?jk=fce310d4a66fffb9",
+            "status": "Apply Online"
+        },
+        {
+            "title": "TypeScript Developer (Fresher)",
+            "company": "Associative",
+            "location": "Haveli, Maharashtra, India",
+            "url": "https://www.linkedin.com/jobs/view/4420915333",
+            "status": "Apply Online"
+        },
+        {
+            "title": "Node-n Expert (Fresher)",
+            "company": "Associative",
+            "location": "Haveli, Maharashtra, India",
+            "url": "https://www.linkedin.com/jobs/view/4420913401",
+            "status": "Apply Online"
+        },
+        {
+            "title": "Golang Developer (Fresher)",
+            "company": "Associative",
+            "location": "Haveli, Maharashtra, India",
+            "url": "https://www.linkedin.com/jobs/view/4420698930",
+            "status": "Apply Online"
+        },
+        {
+            "title": "Contentful Developer (Fresher)",
+            "company": "Associative",
+            "location": "Haveli, Maharashtra, India",
+            "url": "https://www.linkedin.com/jobs/view/4420615189",
+            "status": "Apply Online"
+        },
+        {
             "title": "Startup Cold Application",
-            "company": "Dream11",
-            "location": "Mumbai, India",
-            "url": "mailto:careers@dream11.com",
+            "company": "Groww",
+            "location": "Bangalore, India",
+            "url": "mailto:careers@groww.in",
             "status": "Draft Saved"
         },
         {
             "title": "Startup Cold Application",
-            "company": "Zomato",
-            "location": "Pan India",
-            "url": "mailto:careers@zomato.com",
+            "company": "Cred",
+            "location": "Bangalore, India",
+            "url": "mailto:careers@cred.club",
             "status": "Draft Saved"
         }
     ]
