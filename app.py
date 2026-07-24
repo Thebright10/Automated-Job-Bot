@@ -123,13 +123,13 @@ def run_daily_vip_job():
 
         logger.info(f"Running daily VIP job for {admin.email}...")
         
-        # Sudip's portfolio-based search — covers ALL experience levels
+        # Sudip's portfolio-based search — targeting FRESHER roles
         search_terms = [
-            "Python Developer",
-            "Data Analyst",
-            "Software Engineer",
-            "Web Developer React",
-            "Machine Learning Engineer"
+            "Python Developer Fresher",
+            "Data Analyst Entry Level",
+            "Software Engineer Junior",
+            "Web Developer React Fresher",
+            "Machine Learning Intern"
         ]
         location = "India"
         
@@ -333,15 +333,14 @@ def admin_refresh_jobs():
     if not current_user.is_admin:
         return jsonify({"error": "Unauthorized"}), 403
     
-    # Sudip's skills from his portfolio — covers ALL experience levels
+    # Sudip's skills from his portfolio — targeting FRESHER roles
     ADMIN_SEARCH_TERMS = [
-        "Python Developer",
-        "Data Analyst",
-        "Software Engineer",
-        "Full Stack Developer",
-        "Machine Learning Engineer",
-        "React Developer",
-        "Flask Django Developer"
+        "Python Developer Fresher India",
+        "Data Analyst Entry Level India",
+        "Software Engineer Junior India",
+        "React Developer Fresher India",
+        "Machine Learning Intern India",
+        "Flask Django Developer Junior"
     ]
     
     all_jobs = []
