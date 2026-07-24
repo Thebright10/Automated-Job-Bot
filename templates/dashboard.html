@@ -1,0 +1,165 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Dashboard - AI Job Matcher</title>
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;800&family=Plus+Jakarta+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/static/style.css">
+</head>
+<body class="dashboard-body">
+
+  <div class="sidebar">
+    <div class="logo sidebar-logo">
+      <div class="logo-icon">🤖</div>
+      <span>Job Matcher</span>
+    </div>
+    
+    <div class="user-profile">
+      <img src="{{ user.avatar }}" alt="Avatar" class="avatar">
+      <div class="user-info">
+        <div class="user-name">{{ user.name }}</div>
+        <div class="user-role">{{ 'Admin (VIP)' if user.is_admin else 'Standard User' }}</div>
+      </div>
+    </div>
+    
+    <nav class="sidebar-nav">
+      <a href="#upload" class="nav-item active">📄 Resume Analysis</a>
+      <a href="#history" class="nav-item">🕰️ Job History</a>
+      <a href="/logout" class="nav-item" style="color: #ef4444; margin-top: auto;">🚪 Logout</a>
+    </nav>
+  </div>
+
+  <main class="dashboard-main">
+    <header class="dash-header">
+      <h1>Welcome back, {{ user.name.split(' ')[0] }}!</h1>
+      <p>Your AI career assistant is ready.</p>
+    </header>
+
+    <div class="dashboard-grid">
+      
+      <!-- Upload Section -->
+      <section class="glass-card" id="upload">
+        <h3 class="section-title">New Analysis</h3>
+        <form id="uploadForm" class="upload-area">
+          <input type="file" id="resumeInput" accept=".pdf" required hidden>
+          <label for="resumeInput" class="upload-label" style="height: 120px;">
+            <div class="upload-icon" style="font-size: 24px;">📄</div>
+            <div class="upload-text" style="font-size: 1rem;">Upload Resume PDF</div>
+          </label>
+          <input type="text" id="locationInput" value="India" class="styled-input" style="margin-top: 10px;">
+          <button type="submit" class="btn-primary" id="analyzeBtn" disabled style="padding: 10px; margin-top: 10px;">Analyze & Search</button>
+        </form>
+        
+        <div class="loading-state" id="loadingState">
+          <div class="spinner"></div>
+          <p id="loadingText">Analyzing...</p>
+        </div>
+      </section>
+
+      <!-- AI Feedback Section -->
+      <section class="glass-card ai-feedback" id="feedbackSection" style="display: none;">
+        <h3 class="section-title">AI Feedback</h3>
+        <ul id="suggestionsList" class="custom-list"></ul>
+        <div class="tag-container" id="searchTermsList" style="margin-top: 15px;"></div>
+      </section>
+
+    </div>
+
+    <!-- Job History Table -->
+    <section class="glass-card" id="history" style="margin-top: 30px;">
+      <h3 class="section-title">Your Job Matches</h3>
+      
+      {% if history %}
+      <div class="table-container">
+        <table class="data-table">
+          <thead>
+            <tr>
+              <th>Date</th>
+              <th>Role</th>
+              <th>Company</th>
+              <th>Location</th>
+              <th>Action</th>
+            </tr>
+          </thead>
+          <tbody id="historyTableBody">
+            {% for job in history %}
+            <tr>
+              <td>{{ job.date_found.strftime('%Y-%m-%d') }}</td>
+              <td style="font-weight: 600; color: var(--text-primary);">{{ job.title }}</td>
+              <td style="color: var(--accent-cyan);">{{ job.company }}</td>
+              <td>{{ job.location }}</td>
+              <td><a href="{{ job.url }}" target="_blank" class="apply-btn-small">Apply</a></td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+      {% else %}
+      <p style="color: var(--text-secondary); text-align: center; padding: 20px;">No jobs found yet. Upload a resume to start searching!</p>
+      {% endif %}
+    </section>
+
+  </main>
+
+  <script>
+    // Handle file selection
+    const resumeInput = document.getElementById('resumeInput');
+    const analyzeBtn = document.getElementById('analyzeBtn');
+    const uploadLabel = document.querySelector('.upload-label');
+    
+    resumeInput.addEventListener('change', (e) => {
+      if (e.target.files.length > 0) {
+        analyzeBtn.disabled = false;
+        uploadLabel.innerHTML = `<div style="color: var(--accent-cyan);">✓ ${e.target.files[0].name}</div>`;
+        uploadLabel.style.borderColor = 'var(--accent-cyan)';
+      }
+    });
+
+    document.getElementById('uploadForm').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      
+      const file = resumeInput.files[0];
+      const location = document.getElementById('locationInput').value;
+      
+      const loadingState = document.getElementById('loadingState');
+      const feedbackSection = document.getElementById('feedbackSection');
+      
+      document.getElementById('uploadForm').style.display = 'none';
+      loadingState.style.display = 'flex';
+
+      const formData = new FormData();
+      formData.append('resume', file);
+
+      try {
+        // 1. Analyze
+        const analyzeRes = await fetch('/api/analyze', { method: 'POST', body: formData });
+        const analyzeData = await analyzeRes.json();
+        if (!analyzeData.success) throw new Error(analyzeData.error);
+        
+        const { search_terms, suggestions } = analyzeData.data;
+        document.getElementById('suggestionsList').innerHTML = suggestions.map(s => `<li>${s}</li>`).join('');
+        document.getElementById('searchTermsList').innerHTML = search_terms.map(t => `<span class="tag">${t}</span>`).join('');
+        
+        // 2. Search
+        document.getElementById('loadingText').innerText = "Scraping live jobs...";
+        const searchRes = await fetch('/api/search', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ search_terms, location })
+        });
+        const searchData = await searchRes.json();
+        if (!searchData.success) throw new Error(searchData.error);
+        
+        // Reload page to show new history in table
+        window.location.reload();
+        
+      } catch (error) {
+        alert("Error: " + error.message);
+        document.getElementById('uploadForm').style.display = 'block';
+        loadingState.style.display = 'none';
+      }
+    });
+  </script>
+</body>
+</html>
