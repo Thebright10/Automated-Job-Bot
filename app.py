@@ -14,11 +14,14 @@ import smtplib
 from email.mime.text import MIMEText
 from email.mime.multipart import MIMEMultipart
 
+from werkzeug.middleware.proxy_fix import ProxyFix
+
 # Configure logging
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
 app = Flask(__name__)
+app.wsgi_app = ProxyFix(app.wsgi_app, x_proto=1, x_host=1)
 app.secret_key = os.environ.get("FLASK_SECRET_KEY", "super_secret_dev_key")
 
 # Database Configuration (SQLite for local/Render, can be swapped to Postgres)
@@ -234,26 +237,30 @@ def login():
 
 @app.route('/authorize')
 def authorize():
-    token = google.authorize_access_token()
-    user_info = google.get('userinfo').json()
-    
-    email = user_info['email']
-    user = User.query.filter_by(email=email).first()
-    
-    if not user:
-        # Create new user
-        is_admin = (email == os.environ.get("ADMIN_EMAIL", "adaksudip956@gmail.com"))
-        user = User(
-            email=email,
-            name=user_info.get('name', ''),
-            avatar=user_info.get('picture', ''),
-            is_admin=is_admin
-        )
-        db.session.add(user)
-        db.session.commit()
+    try:
+        token = google.authorize_access_token()
+        user_info = google.get('userinfo').json()
         
-    login_user(user)
-    return redirect(url_for('dashboard'))
+        email = user_info['email']
+        user = User.query.filter_by(email=email).first()
+        
+        if not user:
+            # Create new user
+            is_admin = (email == os.environ.get("ADMIN_EMAIL", "adaksudip956@gmail.com"))
+            user = User(
+                email=email,
+                name=user_info.get('name', ''),
+                avatar=user_info.get('picture', ''),
+                is_admin=is_admin
+            )
+            db.session.add(user)
+            db.session.commit()
+            
+        login_user(user)
+        return redirect(url_for('dashboard'))
+    except Exception as e:
+        logger.error(f"OAuth Error: {e}")
+        return f"<h2>Login Error</h2><p>{e}</p><p><a href='/'>Go back and try again</a></p>", 500
 
 @app.route('/logout')
 @login_required
