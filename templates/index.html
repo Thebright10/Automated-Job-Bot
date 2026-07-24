@@ -1,0 +1,209 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>AI Job Matcher - Premium</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;800&family=Plus+Jakarta+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/static/style.css">
+</head>
+<body>
+  
+  <!-- Glowing Background Orbs -->
+  <div class="glow-orb orb-1"></div>
+  <div class="glow-orb orb-2"></div>
+  <div class="glow-orb orb-3"></div>
+
+  <div class="container">
+    <header class="header" data-animate="fade-down">
+      <div class="logo">
+        <div class="logo-icon">🤖</div>
+        <span>AI Job Matcher</span>
+      </div>
+      <p class="subtitle">Upload your resume. Let AI fix it. Get live job matches instantly.</p>
+    </header>
+
+    <main>
+      <!-- Upload Section -->
+      <section class="glass-card upload-section" id="uploadSection" data-animate="fade-up">
+        <h2>Drop Your Resume Here</h2>
+        <p>PDF format only. We'll analyze it and find the best roles.</p>
+        
+        <form id="uploadForm" class="upload-area">
+          <input type="file" id="resumeInput" accept=".pdf" required hidden>
+          <label for="resumeInput" class="upload-label">
+            <div class="upload-icon">📄</div>
+            <div class="upload-text">Click to browse or drag & drop</div>
+            <div class="upload-hint">Maximum file size 5MB</div>
+          </label>
+          <div class="form-group" style="margin-top: 20px;">
+            <label for="locationInput">Target Location</label>
+            <input type="text" id="locationInput" value="India" placeholder="e.g. Bangalore, India" class="styled-input">
+          </div>
+          <button type="submit" class="btn-primary" id="analyzeBtn" disabled>Analyze & Match</button>
+        </form>
+      </section>
+
+      <!-- Loading State -->
+      <div class="loading-state" id="loadingState">
+        <div class="spinner"></div>
+        <p id="loadingText">AI is reading your resume...</p>
+      </div>
+
+      <!-- Results Section -->
+      <section class="results-grid" id="resultsSection" style="display: none;">
+        
+        <!-- AI Feedback -->
+        <div class="glass-card ai-feedback" data-animate="fade-right">
+          <div class="card-header">
+            <div class="icon-box">✨</div>
+            <h3>AI Resume Feedback</h3>
+          </div>
+          <div class="feedback-content">
+            <p class="feedback-intro">Here is how to optimize your resume for ATS systems based on our analysis:</p>
+            <ul id="suggestionsList" class="custom-list">
+              <!-- Populated by JS -->
+            </ul>
+            <div class="extracted-terms">
+              <h4>Extracted Job Roles:</h4>
+              <div class="tag-container" id="searchTermsList">
+                <!-- Populated by JS -->
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Live Job Matches -->
+        <div class="glass-card live-jobs" data-animate="fade-left">
+          <div class="card-header">
+            <div class="icon-box">🎯</div>
+            <h3>Live Job Matches</h3>
+          </div>
+          <div class="jobs-feed" id="jobsFeed">
+            <!-- Populated by JS -->
+          </div>
+        </div>
+
+      </section>
+    </main>
+  </div>
+
+  <script>
+    const form = document.getElementById('uploadForm');
+    const resumeInput = document.getElementById('resumeInput');
+    const analyzeBtn = document.getElementById('analyzeBtn');
+    const uploadLabel = document.querySelector('.upload-label');
+    const loadingState = document.getElementById('loadingState');
+    const loadingText = document.getElementById('loadingText');
+    const resultsSection = document.getElementById('resultsSection');
+    const uploadSection = document.getElementById('uploadSection');
+
+    // Handle file selection
+    resumeInput.addEventListener('change', (e) => {
+      if (e.target.files.length > 0) {
+        analyzeBtn.disabled = false;
+        uploadLabel.innerHTML = `<div class="upload-icon" style="color: var(--accent-cyan);">✓</div><div class="upload-text" style="color: white;">${e.target.files[0].name} selected</div>`;
+        uploadLabel.style.borderColor = 'var(--accent-cyan)';
+        uploadLabel.style.background = 'rgba(6, 182, 212, 0.1)';
+      }
+    });
+
+    form.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      
+      const file = resumeInput.files[0];
+      const location = document.getElementById('locationInput').value;
+      if (!file) return;
+
+      // UI State: Loading AI
+      uploadSection.style.display = 'none';
+      loadingState.style.display = 'flex';
+      loadingText.innerText = "Analyzing your resume with Gemini AI...";
+
+      const formData = new FormData();
+      formData.append('resume', file);
+
+      try {
+        // Step 1: Analyze Resume
+        const analyzeRes = await fetch('/api/analyze', {
+          method: 'POST',
+          body: formData
+        });
+        const analyzeData = await analyzeRes.json();
+
+        if (!analyzeData.success) {
+          throw new Error(analyzeData.error);
+        }
+
+        const { search_terms, suggestions } = analyzeData.data;
+
+        // Populate AI Feedback UI
+        const suggestionsList = document.getElementById('suggestionsList');
+        suggestionsList.innerHTML = suggestions.map(s => `<li>${s}</li>`).join('');
+        
+        const searchTermsList = document.getElementById('searchTermsList');
+        searchTermsList.innerHTML = search_terms.map(t => `<span class="tag">${t}</span>`).join('');
+
+        // UI State: Scraping Jobs
+        loadingText.innerText = `Scraping live jobs for: ${search_terms.join(', ')}...`;
+
+        // Step 2: Search Jobs
+        const searchRes = await fetch('/api/search', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ search_terms, location })
+        });
+        const searchData = await searchRes.json();
+
+        if (!searchData.success) {
+          throw new Error(searchData.error);
+        }
+
+        // Populate Jobs UI
+        const jobsFeed = document.getElementById('jobsFeed');
+        if (searchData.jobs.length === 0) {
+          jobsFeed.innerHTML = '<div class="no-jobs">No exact matches found right now. Try expanding your location!</div>';
+        } else {
+          jobsFeed.innerHTML = searchData.jobs.map(job => `
+            <div class="job-card">
+              <div class="job-card-header">
+                <a href="${job.url}" target="_blank" class="job-title">${job.title}</a>
+                <span class="job-source-tag">${job.source}</span>
+              </div>
+              <div class="job-company">${job.company}</div>
+              <div class="job-location">📍 ${job.location}</div>
+              <a href="${job.url}" target="_blank" class="apply-btn">Apply Now</a>
+            </div>
+          `).join('');
+        }
+
+        // UI State: Show Results
+        loadingState.style.display = 'none';
+        resultsSection.style.display = 'grid';
+
+      } catch (error) {
+        alert("Error: " + error.message);
+        uploadSection.style.display = 'block';
+        loadingState.style.display = 'none';
+      }
+    });
+
+    // Simple entrance animations
+    document.addEventListener('DOMContentLoaded', () => {
+      document.querySelectorAll('[data-animate]').forEach(el => {
+        el.style.opacity = '0';
+        el.style.transform = el.dataset.animate === 'fade-up' ? 'translateY(20px)' : 
+                             el.dataset.animate === 'fade-down' ? 'translateY(-20px)' : 
+                             el.dataset.animate === 'fade-right' ? 'translateX(-20px)' : 'translateX(20px)';
+        el.style.transition = 'all 0.8s cubic-bezier(0.2, 0.8, 0.2, 1)';
+        setTimeout(() => {
+          el.style.opacity = '1';
+          el.style.transform = 'translate(0)';
+        }, 100);
+      });
+    });
+  </script>
+</body>
+</html>
