@@ -312,7 +312,66 @@ def logout():
 @login_required
 def dashboard():
     history = JobHistory.query.filter_by(user_id=current_user.id).order_by(JobHistory.date_found.desc()).all()
+    if current_user.is_admin:
+        # Admin gets a completely different dashboard
+        all_users = User.query.order_by(User.created_at.desc()).all()
+        total_jobs = JobHistory.query.count()
+        return render_template('admin_dashboard.html', user=current_user, history=history, 
+                             all_users=all_users, total_jobs=total_jobs, now=datetime.utcnow())
     return render_template('dashboard.html', user=current_user, history=history, now=datetime.utcnow())
+
+@app.route('/api/admin/refresh', methods=['POST'])
+@login_required
+def admin_refresh_jobs():
+    """VIP Admin endpoint: auto-scrape jobs based on Sudip's portfolio skills."""
+    if not current_user.is_admin:
+        return jsonify({"error": "Unauthorized"}), 403
+    
+    # Sudip's skills from his portfolio — no resume upload needed
+    ADMIN_SEARCH_TERMS = [
+        "Python Developer Fresher India",
+        "Data Analyst Entry Level India",
+        "Software Engineer MCA Fresher",
+        "Web Developer React Python Junior",
+        "Machine Learning Intern India"
+    ]
+    
+    all_jobs = []
+    try:
+        for term in ADMIN_SEARCH_TERMS:
+            try:
+                jobs_df = scrape_jobs(
+                    site_name=["indeed", "linkedin"],
+                    search_term=term,
+                    location="India",
+                    results_wanted=3,
+                    country_indeed='India'
+                )
+                if not jobs_df.empty:
+                    for _, row in jobs_df.iterrows():
+                        job = {
+                            "title": str(row.get('title', 'Unknown')),
+                            "company": str(row.get('company', 'Unknown')),
+                            "location": str(row.get('location', 'India')),
+                            "url": str(row.get('job_url', '#'))
+                        }
+                        all_jobs.append(job)
+                        new_history = JobHistory(
+                            user_id=current_user.id,
+                            title=job['title'],
+                            company=job['company'],
+                            location=job['location'],
+                            url=job['url']
+                        )
+                        db.session.add(new_history)
+            except Exception as e:
+                logger.error(f"Error scraping {term}: {e}")
+        
+        db.session.commit()
+        return jsonify({"success": True, "jobs": all_jobs, "count": len(all_jobs)})
+    except Exception as e:
+        logger.error(f"Admin refresh error: {e}")
+        return jsonify({"error": str(e)}), 500
 
 @app.route('/api/analyze', methods=['POST'])
 @login_required
@@ -364,7 +423,6 @@ def search_jobs():
                     }
                     all_jobs.append(job)
                     
-                    # Save to user history
                     new_history = JobHistory(
                         user_id=current_user.id,
                         title=job['title'],
