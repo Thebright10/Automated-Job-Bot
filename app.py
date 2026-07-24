@@ -333,9 +333,11 @@ def search_jobs():
         logger.error(f"Error scraping jobs: {e}")
         return jsonify({"error": "Failed to scrape jobs."}), 500
 
+# --- INITIALIZE DATABASE ---
+with app.app_context():
+    db.create_all()
+
 if __name__ == '__main__':
-    with app.app_context():
-        db.create_all() # Initialize database
     os.makedirs('templates', exist_ok=True)
     os.makedirs('static', exist_ok=True)
-    app.run(debug=True, port=5000, use_reloader=False) # use_reloader=False prevents double scheduler trigger
+    app.run(debug=True, port=5000, use_reloader=False)
