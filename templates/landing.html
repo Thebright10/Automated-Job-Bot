@@ -3,30 +3,102 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>AI Job Matcher - Platform</title>
-  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;800&family=Plus+Jakarta+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+  <title>AI Job Matcher — Find Your Dream Role with AI</title>
+  <meta name="description" content="Upload your resume, get instant AI-powered feedback, and discover personalized job matches from across the web.">
   <link rel="stylesheet" href="/static/style.css">
 </head>
 <body>
-  
-  <div class="glow-orb orb-1"></div>
-  <div class="glow-orb orb-2"></div>
 
-  <div class="container" style="display: flex; flex-direction: column; align-items: center; justify-content: center; min-height: 80vh;">
-    <div class="glass-card" style="text-align: center; max-width: 500px; width: 100%;">
-      <div class="logo" style="margin-bottom: 30px;">
-        <div class="logo-icon">🤖</div>
-        <span>AI Job Matcher</span>
-      </div>
-      <h1 style="margin-bottom: 20px; font-family: 'Outfit';">Welcome to the Platform</h1>
-      <p style="color: var(--text-secondary); margin-bottom: 40px;">Log in to upload your resume, receive AI-driven feedback, and find the perfect tech roles tailored to your specific experience.</p>
-      
-      <a href="/login" class="btn-primary" style="display: inline-flex; align-items: center; justify-content: center; gap: 10px; text-decoration: none;">
-        <img src="https://upload.wikimedia.org/wikipedia/commons/5/53/Google_%22G%22_Logo.svg" alt="Google" style="width: 20px; height: 20px; background: white; border-radius: 50%; padding: 2px;">
-        Sign in with Google
-      </a>
+  <!-- Animated Background -->
+  <div class="bg-grid"></div>
+  <div class="bg-gradient-blob blob-1"></div>
+  <div class="bg-gradient-blob blob-2"></div>
+  <div class="bg-gradient-blob blob-3"></div>
+  <div class="particle"></div>
+  <div class="particle"></div>
+  <div class="particle"></div>
+  <div class="particle"></div>
+  <div class="particle"></div>
+  <div class="particle"></div>
+  <div class="particle"></div>
+  <div class="particle"></div>
+
+  <!-- Navigation -->
+  <nav class="landing-nav">
+    <div class="logo">
+      <div class="logo-icon">🤖</div>
+      <span class="logo-text">Job Matcher</span>
     </div>
-  </div>
+    <span class="nav-badge">✦ AI POWERED</span>
+  </nav>
+
+  <!-- Hero Section -->
+  <section class="hero">
+    <div class="hero-content">
+      <div class="hero-badge">
+        <span class="hero-badge-dot"></span>
+        Powered by Google Gemini AI
+      </div>
+
+      <h1>
+        Your Next Career Move,<br>
+        <span class="text-gradient">Powered by AI.</span>
+      </h1>
+
+      <p class="hero-desc">
+        Upload your resume and let our AI analyze your skills, suggest improvements, and instantly find matching roles from Indeed, LinkedIn, and more — all in one place.
+      </p>
+
+      <div class="hero-cta">
+        <a href="/login" class="btn btn-primary">
+          <img src="https://upload.wikimedia.org/wikipedia/commons/5/53/Google_%22G%22_Logo.svg" alt="Google" class="btn-google-icon">
+          Sign in with Google
+        </a>
+        <a href="#features" class="btn btn-ghost">
+          Learn More ↓
+        </a>
+      </div>
+    </div>
+  </section>
+
+  <!-- Features Section -->
+  <section class="features" id="features">
+    <div class="features-header">
+      <h2>Everything You Need to Land the Job</h2>
+      <p>A complete AI-driven toolkit for modern job seekers</p>
+    </div>
+
+    <div class="features-grid">
+      <div class="feature-card animate-in animate-in-delay-1">
+        <div class="feature-icon indigo">🧠</div>
+        <h3>AI Resume Analysis</h3>
+        <p>Our Gemini-powered AI reads your resume, understands your skills and experience, and identifies the most relevant job titles to search for.</p>
+      </div>
+
+      <div class="feature-card animate-in animate-in-delay-2">
+        <div class="feature-icon violet">🔍</div>
+        <h3>Real-Time Job Scraping</h3>
+        <p>We scan Indeed, LinkedIn, and other platforms in real-time to deliver fresh job postings that match your exact profile. No stale listings.</p>
+      </div>
+
+      <div class="feature-card animate-in animate-in-delay-3">
+        <div class="feature-icon cyan">📊</div>
+        <h3>Smart Suggestions</h3>
+        <p>Get actionable, ATS-optimized feedback on how to improve your resume to increase your chances of passing automated screening systems.</p>
+      </div>
+
+      <div class="feature-card animate-in animate-in-delay-4">
+        <div class="feature-icon emerald">📬</div>
+        <h3>Daily VIP Digest</h3>
+        <p>Qualified users receive a personalized daily email with fresh job matches — automatically, without lifting a finger.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- Footer -->
+  <footer class="landing-footer">
+    <p>Built with ❤️ by Sudip Adak · © 2026 AI Job Matcher</p>
+  </footer>
 
 </body>
 </html>

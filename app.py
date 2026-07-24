@@ -272,7 +272,7 @@ def logout():
 @login_required
 def dashboard():
     history = JobHistory.query.filter_by(user_id=current_user.id).order_by(JobHistory.date_found.desc()).all()
-    return render_template('dashboard.html', user=current_user, history=history)
+    return render_template('dashboard.html', user=current_user, history=history, now=datetime.utcnow())
 
 @app.route('/api/analyze', methods=['POST'])
 @login_required

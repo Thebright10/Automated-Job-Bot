@@ -3,73 +3,126 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Dashboard - AI Job Matcher</title>
-  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;800&family=Plus+Jakarta+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+  <title>Dashboard — AI Job Matcher</title>
+  <meta name="description" content="Your personal AI-powered job matching dashboard.">
   <link rel="stylesheet" href="/static/style.css">
 </head>
 <body class="dashboard-body">
 
-  <div class="sidebar">
-    <div class="logo sidebar-logo">
+  <!-- Sidebar -->
+  <aside class="sidebar">
+    <div class="sidebar-logo">
       <div class="logo-icon">🤖</div>
-      <span>Job Matcher</span>
+      <span class="logo-text">Job Matcher</span>
     </div>
-    
+
     <div class="user-profile">
-      <img src="{{ user.avatar }}" alt="Avatar" class="avatar">
+      {% if user.avatar %}
+      <img src="{{ user.avatar }}" alt="{{ user.name }}" class="avatar">
+      {% else %}
+      <div class="avatar" style="background: var(--gradient-btn); display:flex; align-items:center; justify-content:center; font-size:1.2rem; font-weight:700;">{{ user.name[0] }}</div>
+      {% endif %}
       <div class="user-info">
         <div class="user-name">{{ user.name }}</div>
-        <div class="user-role">{{ 'Admin (VIP)' if user.is_admin else 'Standard User' }}</div>
+        <div class="user-role">
+          {% if user.is_admin %}
+          <span class="vip-badge">⭐ VIP Admin</span>
+          {% else %}
+          Standard User
+          {% endif %}
+        </div>
       </div>
     </div>
-    
-    <nav class="sidebar-nav">
-      <a href="#upload" class="nav-item active">📄 Resume Analysis</a>
-      <a href="#history" class="nav-item">🕰️ Job History</a>
-      <a href="/logout" class="nav-item" style="color: #ef4444; margin-top: auto;">🚪 Logout</a>
-    </nav>
-  </div>
 
+    <span class="sidebar-section-label">Navigation</span>
+
+    <nav class="sidebar-nav">
+      <a href="#upload" class="nav-item active">
+        <span class="nav-icon">📄</span> Resume Analysis
+      </a>
+      <a href="#history" class="nav-item">
+        <span class="nav-icon">🕰️</span> Job History
+      </a>
+      <a href="/logout" class="nav-item logout">
+        <span class="nav-icon">🚪</span> Sign Out
+      </a>
+    </nav>
+  </aside>
+
+  <!-- Main Content -->
   <main class="dashboard-main">
-    <header class="dash-header">
-      <h1>Welcome back, {{ user.name.split(' ')[0] }}!</h1>
-      <p>Your AI career assistant is ready.</p>
+    <div class="bg-grid"></div>
+
+    <!-- Header -->
+    <header class="dash-header animate-in">
+      <div class="dash-header-left">
+        <h1>Welcome back, {{ user.name.split(' ')[0] }} 👋</h1>
+        <p>Your AI career assistant is ready to find your next opportunity.</p>
+      </div>
+      <div class="header-date">
+        📅 {{ now.strftime('%B %d, %Y') if now else '' }}
+      </div>
     </header>
 
-    <div class="dashboard-grid">
-      
+    <!-- Stats Row -->
+    <div class="stats-row animate-in animate-in-delay-1">
+      <div class="stat-card">
+        <div class="stat-label">Total Jobs Found</div>
+        <div class="stat-value indigo">{{ history|length }}</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-label">Unique Companies</div>
+        <div class="stat-value emerald">{{ history|map(attribute='company')|unique|list|length }}</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-label">Account Type</div>
+        <div class="stat-value cyan" style="font-size:1.3rem;">{{ 'VIP ⭐' if user.is_admin else 'Standard' }}</div>
+      </div>
+    </div>
+
+    <!-- Two Column Grid -->
+    <div class="dashboard-grid animate-in animate-in-delay-2">
+
       <!-- Upload Section -->
       <section class="glass-card" id="upload">
-        <h3 class="section-title">New Analysis</h3>
+        <h3 class="section-title">
+          <span class="title-icon">🔬</span> New Analysis
+        </h3>
         <form id="uploadForm" class="upload-area">
           <input type="file" id="resumeInput" accept=".pdf" required hidden>
-          <label for="resumeInput" class="upload-label" style="height: 120px;">
-            <div class="upload-icon" style="font-size: 24px;">📄</div>
-            <div class="upload-text" style="font-size: 1rem;">Upload Resume PDF</div>
+          <label for="resumeInput" class="upload-label">
+            <div class="upload-icon">📄</div>
+            <div class="upload-text">Click to upload your Resume (PDF)</div>
           </label>
-          <input type="text" id="locationInput" value="India" class="styled-input" style="margin-top: 10px;">
-          <button type="submit" class="btn-primary" id="analyzeBtn" disabled style="padding: 10px; margin-top: 10px;">Analyze & Search</button>
+          <input type="text" id="locationInput" value="India" placeholder="Location (e.g. India, Remote)" class="styled-input">
+          <button type="submit" class="btn btn-primary" id="analyzeBtn" disabled style="margin-top: 12px; width: 100%; padding: 14px;">
+            🚀 Analyze & Find Jobs
+          </button>
         </form>
-        
+
         <div class="loading-state" id="loadingState">
           <div class="spinner"></div>
-          <p id="loadingText">Analyzing...</p>
+          <p id="loadingText" style="color: var(--text-secondary);">Analyzing your resume with AI...</p>
         </div>
       </section>
 
       <!-- AI Feedback Section -->
-      <section class="glass-card ai-feedback" id="feedbackSection" style="display: none;">
-        <h3 class="section-title">AI Feedback</h3>
+      <section class="glass-card" id="feedbackSection" style="display: none;">
+        <h3 class="section-title">
+          <span class="title-icon">🧠</span> AI Feedback
+        </h3>
         <ul id="suggestionsList" class="custom-list"></ul>
-        <div class="tag-container" id="searchTermsList" style="margin-top: 15px;"></div>
+        <div class="tag-container" id="searchTermsList" style="margin-top: 20px;"></div>
       </section>
 
     </div>
 
     <!-- Job History Table -->
-    <section class="glass-card" id="history" style="margin-top: 30px;">
-      <h3 class="section-title">Your Job Matches</h3>
-      
+    <section class="glass-card animate-in animate-in-delay-3" id="history" style="margin-top: 32px;">
+      <h3 class="section-title">
+        <span class="title-icon">📋</span> Your Job Matches
+      </h3>
+
       {% if history %}
       <div class="table-container">
         <table class="data-table">
@@ -85,18 +138,25 @@
           <tbody id="historyTableBody">
             {% for job in history %}
             <tr>
-              <td>{{ job.date_found.strftime('%Y-%m-%d') }}</td>
-              <td style="font-weight: 600; color: var(--text-primary);">{{ job.title }}</td>
-              <td style="color: var(--accent-cyan);">{{ job.company }}</td>
+              <td>{{ job.date_found.strftime('%b %d, %Y') }}</td>
+              <td class="job-title-cell">{{ job.title }}</td>
+              <td class="company-cell">{{ job.company }}</td>
               <td>{{ job.location }}</td>
-              <td><a href="{{ job.url }}" target="_blank" class="apply-btn-small">Apply</a></td>
+              <td>
+                <a href="{{ job.url }}" target="_blank" rel="noopener" class="apply-btn-small">
+                  Apply →
+                </a>
+              </td>
             </tr>
             {% endfor %}
           </tbody>
         </table>
       </div>
       {% else %}
-      <p style="color: var(--text-secondary); text-align: center; padding: 20px;">No jobs found yet. Upload a resume to start searching!</p>
+      <div class="empty-state">
+        <div class="empty-icon">🔍</div>
+        <p>No job matches yet. Upload your resume above to get started!</p>
+      </div>
       {% endif %}
     </section>
 
@@ -107,24 +167,28 @@
     const resumeInput = document.getElementById('resumeInput');
     const analyzeBtn = document.getElementById('analyzeBtn');
     const uploadLabel = document.querySelector('.upload-label');
-    
+
     resumeInput.addEventListener('change', (e) => {
       if (e.target.files.length > 0) {
         analyzeBtn.disabled = false;
-        uploadLabel.innerHTML = `<div style="color: var(--accent-cyan);">✓ ${e.target.files[0].name}</div>`;
-        uploadLabel.style.borderColor = 'var(--accent-cyan)';
+        uploadLabel.innerHTML = `
+          <div style="color: var(--accent-emerald); font-size: 1.5rem;">✓</div>
+          <div style="color: var(--accent-indigo); font-weight: 600;">${e.target.files[0].name}</div>
+        `;
+        uploadLabel.style.borderColor = 'var(--accent-indigo)';
+        uploadLabel.style.background = 'rgba(99, 102, 241, 0.06)';
       }
     });
 
     document.getElementById('uploadForm').addEventListener('submit', async (e) => {
       e.preventDefault();
-      
+
       const file = resumeInput.files[0];
       const location = document.getElementById('locationInput').value;
-      
+
       const loadingState = document.getElementById('loadingState');
       const feedbackSection = document.getElementById('feedbackSection');
-      
+
       document.getElementById('uploadForm').style.display = 'none';
       loadingState.style.display = 'flex';
 
@@ -132,17 +196,20 @@
       formData.append('resume', file);
 
       try {
-        // 1. Analyze
+        // 1. Analyze Resume
         const analyzeRes = await fetch('/api/analyze', { method: 'POST', body: formData });
         const analyzeData = await analyzeRes.json();
         if (!analyzeData.success) throw new Error(analyzeData.error);
-        
+
         const { search_terms, suggestions } = analyzeData.data;
+
+        // Show AI feedback
+        feedbackSection.style.display = 'block';
         document.getElementById('suggestionsList').innerHTML = suggestions.map(s => `<li>${s}</li>`).join('');
         document.getElementById('searchTermsList').innerHTML = search_terms.map(t => `<span class="tag">${t}</span>`).join('');
-        
-        // 2. Search
-        document.getElementById('loadingText').innerText = "Scraping live jobs...";
+
+        // 2. Search Jobs
+        document.getElementById('loadingText').innerText = '🔍 Scraping live job postings...';
         const searchRes = await fetch('/api/search', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
@@ -150,16 +217,17 @@
         });
         const searchData = await searchRes.json();
         if (!searchData.success) throw new Error(searchData.error);
-        
-        // Reload page to show new history in table
+
+        // Reload page to show new history
         window.location.reload();
-        
+
       } catch (error) {
-        alert("Error: " + error.message);
-        document.getElementById('uploadForm').style.display = 'block';
         loadingState.style.display = 'none';
+        document.getElementById('uploadForm').style.display = 'flex';
+        alert('Error: ' + error.message);
       }
     });
   </script>
+
 </body>
 </html>
