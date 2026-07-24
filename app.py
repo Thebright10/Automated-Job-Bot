@@ -21,8 +21,14 @@ logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
 app = Flask(__name__)
-app.wsgi_app = ProxyFix(app.wsgi_app, x_proto=1, x_host=1)
+app.wsgi_app = ProxyFix(app.wsgi_app, x_for=1, x_proto=1, x_host=1)
 app.secret_key = os.environ.get("FLASK_SECRET_KEY", "super_secret_dev_key")
+
+# Session cookie settings for production behind HTTPS proxy
+app.config['SESSION_COOKIE_SECURE'] = True
+app.config['SESSION_COOKIE_HTTPONLY'] = True
+app.config['SESSION_COOKIE_SAMESITE'] = 'Lax'
+app.config['PREFERRED_URL_SCHEME'] = 'https'
 
 # Database Configuration (SQLite for local/Render, can be swapped to Postgres)
 app.config['SQLALCHEMY_DATABASE_URI'] = os.environ.get("DATABASE_URL", "sqlite:///jobs.db")
@@ -259,8 +265,17 @@ def authorize():
         login_user(user)
         return redirect(url_for('dashboard'))
     except Exception as e:
-        logger.error(f"OAuth Error: {e}")
-        return f"<h2>Login Error</h2><p>{e}</p><p><a href='/'>Go back and try again</a></p>", 500
+        import traceback
+        tb = traceback.format_exc()
+        logger.error(f"OAuth Error: {e}\n{tb}")
+        return f"""
+        <html><body style="font-family: Inter, sans-serif; background: #06080f; color: #f1f5f9; padding: 60px; text-align: center;">
+        <h1 style="color: #fb7185;">⚠️ Login Error</h1>
+        <p style="color: #94a3b8; max-width: 600px; margin: 20px auto;">{e}</p>
+        <pre style="text-align: left; background: #111827; padding: 20px; border-radius: 12px; max-width: 700px; margin: 20px auto; overflow-x: auto; font-size: 0.8rem; color: #94a3b8;">{tb}</pre>
+        <a href="/" style="display: inline-block; margin-top: 20px; padding: 14px 28px; background: linear-gradient(135deg, #6366f1, #8b5cf6); color: white; text-decoration: none; border-radius: 10px; font-weight: 600;">← Try Again</a>
+        </body></html>
+        """, 500
 
 @app.route('/logout')
 @login_required
